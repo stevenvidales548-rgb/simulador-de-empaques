@@ -1,0 +1,392 @@
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guardianes del Planeta</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <main class="contenedor">
+        <header class="encabezado">
+            <span class="etiqueta">GUARDIANES DEL PLANETA · CURSO 1102</span>
+            <h1>Simulador de acumulación de empaques plásticos</h1>
+            <p>Modelo de crecimiento y acumulación de residuos en el entorno escolar.</p>
+        </header>
+
+        <section class="panel">
+            <h2>Configurar simulación</h2>
+
+            <label for="consumo">Consumo inicial (empaques por día)</label>
+            <input type="number" id="consumo" min="0" value="13">
+
+            <label for="crecimiento">Crecimiento (%)</label>
+            <div class="control">
+                <input type="range" id="crecimiento" min="-20" max="30" step="0.5" value="5">
+                <span id="valorCrecimiento">5%</span>
+            </div>
+
+            <label for="dias">Número de días</label>
+            <input type="number" id="dias" min="1" max="60" value="10">
+
+            <label for="tiempo">Tiempo de observación por día (minutos)</label>
+            <input type="number" id="tiempo" min="1" max="1440" value="5">
+
+            <label for="separacion">Separación correcta (%)</label>
+            <div class="control">
+                <input type="range" id="separacion" min="0" max="100" value="60">
+                <span id="valorSeparacion">60%</span>
+            </div>
+
+            <button id="btnSimular" type="button">Simular</button>
+            <button id="btnDatos" class="secundario" type="button">Cargar datos recolectados</button>
+
+            <p class="nota">
+                Mantén la misma duración de observación en cada periodo.
+                Los resultados simulados son proyecciones y no sustituyen
+                las mediciones reales.
+            </p>
+        </section>
+
+        <section class="panel">
+            <h2>Resultados</h2>
+
+            <div class="estadisticas">
+                <article>
+                    <small>Total generado</small>
+                    <strong id="totalGenerado">0</strong>
+                </article>
+                <article>
+                    <small>Total separado correctamente</small>
+                    <strong id="totalSeparado">0</strong>
+                </article>
+                <article>
+                    <small>Acumulación no separada</small>
+                    <strong id="totalAcumulado">0</strong>
+                </article>
+                <article>
+                    <small>Tiempo total</small>
+                    <strong id="tiempoTotal">0 min</strong>
+                </article>
+            </div>
+
+            <div class="grafica-contenedor">
+                <canvas id="grafica" aria-label="Gráfica de empaques por día"></canvas>
+            </div>
+
+            <div class="leyenda">
+                <span>● Acumulación simulada</span>
+                <span>● Empaques generados</span>
+                <span>● Acumulación real</span>
+            </div>
+
+            <div class="ecuacion">
+                <h3>Ecuación lineal de los datos reales</h3>
+                <strong id="ecuacion">Calculando...</strong>
+                <p>X = periodo observado · Y = empaques acumulados.</p>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Datos recolectados por el grupo</h2>
+            <p class="nota">
+                Registros reales entregados: 13, 15, 18, 11, 23, 17, 11, 22, 32 y 21.
+            </p>
+
+            <div class="tabla-contenedor">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Día / periodo</th>
+                            <th>Empaques encontrados</th>
+                            <th>Acumulado real</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaDatos"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Interpretación de resultados</h2>
+            <p id="conclusion" aria-live="polite"></p>
+        </section>
+    </main>
+
+    <script>
+        const datosReales = [13, 15, 18, 11, 23, 17, 11, 22, 32, 21];
+
+        const $ = id => document.getElementById(id);
+
+        function acumular(datos) {
+            let suma = 0;
+            return datos.map(valor => suma += valor);
+        }
+
+        const acumuladoReal = acumular(datosReales);
+        const periodosReales = datosReales.map((_, i) => i + 1);
+
+        function regresion(x, y) {
+            const n = x.length;
+            const sumaX = x.reduce((a, b) => a + b, 0);
+            const sumaY = y.reduce((a, b) => a + b, 0);
+            const sumaXY = x.reduce((s, v, i) => s + v * y[i], 0);
+            const sumaX2 = x.reduce((s, v) => s + v * v, 0);
+
+            const m = (n * sumaXY - sumaX * sumaY) /
+                (n * sumaX2 - sumaX * sumaX);
+            const b = (sumaY - m * sumaX) / n;
+
+            return { m, b };
+        }
+
+        function mostrarEcuacion() {
+            const modelo = regresion(periodosReales, acumuladoReal);
+
+            $("ecuacion").textContent =
+                `Y = ${modelo.m.toFixed(2)}X ` +
+                `${modelo.b < 0 ? "-" : "+"} ${Math.abs(modelo.b).toFixed(2)}`;
+        }
+
+        function mostrarTabla() {
+            $("tablaDatos").innerHTML = datosReales.map((valor, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${valor}</td>
+                    <td>${acumuladoReal[i]}</td>
+                </tr>
+            `).join("");
+        }
+
+        function actualizarEtiquetas() {
+            $("valorCrecimiento").textContent = $("crecimiento").value + "%";
+            $("valorSeparacion").textContent = $("separacion").value + "%";
+        }
+
+        function simular() {
+            actualizarEtiquetas();
+
+            const consumo = Number($("consumo").value);
+            const crecimiento = Number($("crecimiento").value);
+            const dias = Number($("dias").value);
+            const tiempo = Number($("tiempo").value);
+            const separacion = Number($("separacion").value);
+
+            if (
+                $("consumo").value.trim() === "" ||
+                $("dias").value.trim() === "" ||
+                $("tiempo").value.trim() === "" ||
+                !Number.isFinite(consumo) ||
+                !Number.isFinite(crecimiento) ||
+                !Number.isFinite(dias) ||
+                !Number.isFinite(tiempo) ||
+                !Number.isFinite(separacion) ||
+                consumo < 0 ||
+                dias < 1 || dias > 60 || !Number.isInteger(dias) ||
+                tiempo < 1 || tiempo > 1440 ||
+                separacion < 0 || separacion > 100
+            ) {
+                $("conclusion").textContent =
+                    "Revisa los valores: el consumo debe ser no negativo, " +
+                    "los días deben estar entre 1 y 60, el tiempo entre " +
+                    "1 y 1440 minutos y la separación entre 0 y 100%.";
+                return;
+            }
+
+            const generados = [];
+            const separados = [];
+            const acumulados = [];
+            let acumulado = 0;
+
+            for (let dia = 0; dia < dias; dia++) {
+                const cantidad = consumo *
+                    Math.pow(1 + crecimiento / 100, dia);
+
+                const cantidadSeparada = cantidad * separacion / 100;
+                const cantidadNoSeparada = cantidad - cantidadSeparada;
+
+                generados.push(cantidad);
+                separados.push(cantidadSeparada);
+
+                acumulado += cantidadNoSeparada;
+                acumulados.push(acumulado);
+            }
+
+            const totalGenerado = generados.reduce((a, b) => a + b, 0);
+            const totalSeparado = separados.reduce((a, b) => a + b, 0);
+            const totalAcumulado = acumulados[acumulados.length - 1];
+            const minutosTotales = dias * tiempo;
+
+            $("totalGenerado").textContent = Math.round(totalGenerado);
+            $("totalSeparado").textContent = Math.round(totalSeparado);
+            $("totalAcumulado").textContent = Math.round(totalAcumulado);
+
+            $("tiempoTotal").textContent = minutosTotales >= 60
+                ? (minutosTotales / 60).toLocaleString("es-CO", {
+                    maximumFractionDigits: 2
+                }) + " h"
+                : minutosTotales + " min";
+
+            dibujarGrafica(generados, acumulados, dias);
+
+            let mensaje;
+
+            if (crecimiento > 0) {
+                mensaje = `La generación aumenta un ${crecimiento}% por periodo.`;
+            } else if (crecimiento < 0) {
+                mensaje = `La generación disminuye un ${Math.abs(crecimiento)}% por periodo.`;
+            } else {
+                mensaje = "La generación se mantiene constante por periodo.";
+            }
+
+            $("conclusion").textContent =
+                `${mensaje} Se observan ${dias} días durante ${tiempo} minutos ` +
+                `por día, para un total de ${minutosTotales} minutos. ` +
+                `Se estima que ${Math.round(totalSeparado)} empaques se separan ` +
+                `correctamente y ${Math.round(totalAcumulado)} quedan sin separar. ` +
+                "Estos valores son simulados y no representan nuevas mediciones reales.";
+        }
+
+        function dibujarGrafica(generados, acumulados, dias) {
+            const canvas = $("grafica");
+            const ctx = canvas.getContext("2d");
+            const ancho = canvas.clientWidth;
+            const alto = canvas.clientHeight;
+            const escala = window.devicePixelRatio || 1;
+
+            canvas.width = Math.round(ancho * escala);
+            canvas.height = Math.round(alto * escala);
+            ctx.setTransform(escala, 0, 0, escala, 0, 0);
+            ctx.clearRect(0, 0, ancho, alto);
+
+            const margen = {
+                arriba: 24,
+                abajo: 48,
+                izquierda: 52,
+                derecha: 16
+            };
+
+            const anchoGrafica = ancho - margen.izquierda - margen.derecha;
+            const altoGrafica = alto - margen.arriba - margen.abajo;
+
+            const maximoX = Math.max(dias, datosReales.length);
+            const valores = [...acumulados, ...generados, ...acumuladoReal];
+            const maximoY = Math.max(10, ...valores) * 1.12;
+
+            const x = dia => margen.izquierda +
+                ((dia - 1) / Math.max(1, maximoX - 1)) * anchoGrafica;
+
+            const y = valor => margen.arriba + altoGrafica -
+                (valor / maximoY) * altoGrafica;
+
+            ctx.font = "11px Arial";
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = "rgba(255,255,255,0.13)";
+            ctx.fillStyle = "#b8cbc2";
+
+            for (let i = 0; i <= 5; i++) {
+                const valor = maximoY * (1 - i / 5);
+                const posicionY = margen.arriba + altoGrafica * i / 5;
+
+                ctx.beginPath();
+                ctx.moveTo(margen.izquierda, posicionY);
+                ctx.lineTo(ancho - margen.derecha, posicionY);
+                ctx.stroke();
+
+                ctx.fillText(Math.round(valor), 5, posicionY + 4);
+            }
+
+            const paso = maximoX > 15 ? Math.ceil(maximoX / 10) : 1;
+
+            for (let dia = 1; dia <= maximoX; dia++) {
+                if (dia !== 1 && dia % paso !== 0 && dia !== maximoX) continue;
+
+                const posicionX = x(dia);
+
+                ctx.beginPath();
+                ctx.moveTo(posicionX, margen.arriba);
+                ctx.lineTo(posicionX, margen.arriba + altoGrafica);
+                ctx.stroke();
+
+                ctx.fillText(String(dia), posicionX - 4, alto - 25);
+            }
+
+            ctx.strokeStyle = "#dbe8e2";
+            ctx.beginPath();
+            ctx.moveTo(margen.izquierda, margen.arriba);
+            ctx.lineTo(margen.izquierda, margen.arriba + altoGrafica);
+            ctx.lineTo(ancho - margen.derecha, margen.arriba + altoGrafica);
+            ctx.stroke();
+
+            ctx.fillStyle = "#dbe8e2";
+            ctx.font = "12px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("Día / periodo", margen.izquierda + anchoGrafica / 2, alto - 5);
+
+            ctx.save();
+            ctx.translate(14, margen.arriba + altoGrafica / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText("Empaques (unidades)", 0, 0);
+            ctx.restore();
+            ctx.textAlign = "left";
+
+            function dibujarLinea(datos, color, discontinua = false) {
+                ctx.beginPath();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2.5;
+                ctx.setLineDash(discontinua ? [5, 4] : []);
+
+                datos.forEach((valor, i) => {
+                    if (i === 0) {
+                        ctx.moveTo(x(i + 1), y(valor));
+                    } else {
+                        ctx.lineTo(x(i + 1), y(valor));
+                    }
+                });
+
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                datos.forEach((valor, i) => {
+                    ctx.beginPath();
+                    ctx.fillStyle = color;
+                    ctx.arc(x(i + 1), y(valor), 3.5, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+
+            dibujarLinea(acumulados, "#b7f34a");
+            dibujarLinea(generados, "#56a8ff", true);
+
+            acumuladoReal.forEach((valor, i) => {
+                ctx.beginPath();
+                ctx.fillStyle = "#ffcc66";
+                ctx.arc(x(i + 1), y(valor), 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function cargarDatosRecolectados() {
+            $("consumo").value = datosReales[0];
+            $("crecimiento").value = 0;
+            $("dias").value = datosReales.length;
+            $("tiempo").value = 5;
+            $("separacion").value = 0;
+
+            actualizarEtiquetas();
+            simular();
+        }
+
+        $("btnSimular").addEventListener("click", simular);
+        $("btnDatos").addEventListener("click", cargarDatosRecolectados);
+        $("crecimiento").addEventListener("input", actualizarEtiquetas);
+        $("separacion").addEventListener("input", actualizarEtiquetas);
+
+        window.addEventListener("resize", simular);
+
+        mostrarTabla();
+        mostrarEcuacion();
+        actualizarEtiquetas();
+        simular();
+    </script>
+</body>
+</html>

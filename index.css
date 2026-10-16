@@ -1,0 +1,270 @@
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: linear-gradient(135deg, #07111f, #102d3d, #173f32);
+    color: #eef7f2;
+    min-height: 100vh;
+}
+
+.contenedor {
+    width: min(1150px, 94%);
+    margin: 28px auto 45px;
+}
+
+.encabezado {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 22px;
+    padding: 25px;
+    margin-bottom: 20px;
+}
+
+.encabezado h1 {
+    font-size: clamp(26px, 4vw, 40px);
+    margin: 12px 0;
+}
+
+.encabezado p {
+    color: #c9ddd4;
+    line-height: 1.5;
+}
+
+.etiqueta {
+    display: inline-block;
+    background: #b7f34a;
+    color: #10200d;
+    border-radius: 20px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.panel {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 20px;
+    padding: 22px;
+    margin-bottom: 20px;
+    min-width: 0;
+}
+
+.panel h2 {
+    margin-top: 0;
+    font-size: 22px;
+}
+
+label {
+    display: block;
+    color: #c9ddd4;
+    margin: 16px 0 8px;
+    font-size: 14px;
+}
+
+input[type="number"] {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #48665d;
+    background: #091923;
+    color: white;
+    font-size: 16px;
+}
+
+.control {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.control input {
+    flex: 1;
+    min-width: 0;
+    accent-color: #b7f34a;
+}
+
+.control span {
+    min-width: 55px;
+    text-align: right;
+    color: #b7f34a;
+    font-weight: bold;
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 17px;
+    border: none;
+    border-radius: 12px;
+    background: #b7f34a;
+    color: #10200d;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+    filter: brightness(0.93);
+    transform: translateY(-1px);
+}
+
+button.secundario {
+    background: #29473e;
+    color: #eef7f2;
+    margin-top: 10px;
+}
+
+.nota {
+    color: #a9c0b7;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.estadisticas {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.estadisticas article {
+    background: #081a23;
+    border-radius: 13px;
+    padding: 14px;
+    min-width: 0;
+}
+
+.estadisticas small {
+    display: block;
+    color: #9fb7ae;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.estadisticas strong {
+    display: block;
+    font-size: clamp(19px, 2.5vw, 26px);
+    overflow-wrap: anywhere;
+}
+
+.grafica-contenedor {
+    width: 100%;
+    background: #06151d;
+    border-radius: 15px;
+    padding: 8px;
+}
+
+#grafica {
+    display: block;
+    width: 100%;
+    height: 380px;
+}
+
+.leyenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 15px 0;
+    font-size: 13px;
+    color: #d4e2dc;
+}
+
+.leyenda span:nth-child(1) {
+    color: #b7f34a;
+}
+
+.leyenda span:nth-child(2) {
+    color: #56a8ff;
+}
+
+.leyenda span:nth-child(3) {
+    color: #ffcc66;
+}
+
+.ecuacion {
+    background: #0a2028;
+    padding: 16px;
+    border-left: 4px solid #b7f34a;
+    border-radius: 12px;
+    overflow-wrap: anywhere;
+}
+
+.ecuacion h3 {
+    margin-top: 0;
+    font-size: 16px;
+}
+
+.ecuacion strong {
+    font-size: 22px;
+    color: #b7f34a;
+}
+
+.ecuacion p {
+    font-size: 13px;
+    color: #a9c0b7;
+}
+
+.tabla-contenedor {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    font-size: 14px;
+}
+
+th,
+td {
+    padding: 12px 8px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+th {
+    color: #b7f34a;
+}
+
+tbody tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+#conclusion {
+    color: #d6e5df;
+    line-height: 1.7;
+}
+
+@media (max-width: 800px) {
+    .estadisticas {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .contenedor {
+        width: 94%;
+        margin-top: 15px;
+    }
+
+    .panel {
+        padding: 16px;
+    }
+
+    #grafica {
+        height: 320px;
+    }
+}
+
+@media (max-width: 380px) {
+    .estadisticas {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .leyenda {
+        flex-direction: column;
+    }
+}
